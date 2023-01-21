@@ -8,9 +8,6 @@ output:
     latex_engine: xelatex
     df_print: paged
 ---
-output:
-  pdf_document:
-    latex_engine: xelatex
 
 ## Resumen 
 
