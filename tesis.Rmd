@@ -1,0 +1,373 @@
+---
+title: Incidencia del Nivel de Escolaridad Sobre el Salario de la Población Económicamente
+  Activa Ocupada del Área Urbana en la Ciudad de Yopal Casanare
+author: "Antonio Medina"
+date: "2023-01-21"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    df_print: paged
+---
+output:
+  pdf_document:
+    latex_engine: xelatex
+
+## Resumen 
+
+Este trabajo estudia la relación que tiene el nivel de escolaridad sobre el nivel de salarios de la 
+población económicamente activa (PEA) en condición ocupada de Yopal Casanare. Los datos 
+utilizados para el análisis se obtuvieron a través de encuestas dirigidas a la población trabajadora 
+de la zona urbana entre noviembre y diciembre del año 2021. La metodología econométrica 
+incluye la estimación por Mínimos cuadrados ordinarios (MCO) calculada con errores estándares 
+robustos, donde se propone que el nivel educativo incide sobre los salarios de los trabajadores. 
+Se logra determinar que, el nivel educativo es estadísticamente significativo en los salarios de la 
+PEA, en donde, la edad y la experiencia influyen, pero, en menor medida sobre el nivel de 
+ingreso, adicionalmente a esto, existe discriminación salarial por género. 
+Palabras claves 
+Grado de escolaridad, nivel de salarios, población económicamente activa (PEA), 
+econometría.
+
+Resumen de variables 
+
+![](resmen variables.jpg)
+
+Principalmente se tuvieron en cuenta quince variables en la encuesta de las cuales sietefueron elegidas para el estudio dado su nivel de significancia. Cabe mencionar que las preguntas de la encuesta eran de tipo cerrada y otras semi-abierta tipo categóricas.
+
+La variable escolaridad $X$ está registrada según el nivel de escolaridad culminado
+satisfactoriamente, por lo que, no se tuvo en cuenta algún proceso de adelanto de dicha formación, si no, hasta haberlo completado. La variable canal de búsqueda $Q$ se plantea como variable dicótoma, si la persona fue recomendada para su trabajo o no contaba con alguna recomendación. En la variable escolaridad fuera del departamento $F$ se preguntó si alguno de los títulos académicos fue completado fuera del departamento, en este caso Casanare, dado que podría tener alguna incidencia el hecho de haber llevado a cabo estudios fuera de este, puesto que existe mejor reconocimiento y más alto nivel en cuanto a la oferta educacional en otros departamentos.
+
+
+### importar datos 
+```{r}
+library(readxl)
+data <- read_excel("datos modelos.xlsx")
+View(data)
+attach(data)
+```
+
+## Determinación del tamaño muestral 
+
+Los datos fueron obtenidos a través de encuestas mediante el método de muestreo aleatorio simple. El tamaño de muestra fue estimado mediante análisis gráfico del comportamiento asintótico de los parámetros del modelo. La distribución asintótica se emplea para aproximar a la verdadera distribución muestral de una variable aleatoria, proponiendo que la distribución de un estimador consistente tiende a acercarse más en probabilidad al valor verdadero, conforme aumenta el tamaño de la muestra. A continuación, se muestran gráficamente el comportamiento de las betas estimadas según lo anteriormente expuesto, esta parte hace parte del preprosesameinto realizado en el sofware excel para hacer más eficiente el analisis. 
+
+![](determiacion muestra.jpg)
+
+Se puede apreciar, que en la mayoría de las betas $β$ estimadas sus coeficientes se estabilizan alrededor de los 380 datos, conduciendo hacia el valor real. 
+
+ 
+###  llamar librerías 
+
+```{r}
+library(MASS)
+library(tidyverse)
+library(ggpubr)
+library(ggplot2)
+library(car)
+library(lmtest)
+library(sandwich)
+```
+
+
+Estimación de coeficientes del modelo  
+Para hallar los coeficientes del modelo se utilizó la función $StepAIC$ del paquete $𝑀𝐴𝑆𝑆$, del software estadístico R, por el cual, a través de algoritmos selecciona variables mediante el método hacia adelante y hacia atrás, utilizando la herramienta Akaik Information Criterion. 
+
+AIC se define como:  
+
+$AIC= -2* LogLink+K*  n_(parametros )$
+
+Donde 𝐿𝑜𝑔𝐿𝑖𝑛𝑘 corresponde al valor de log de verosimilitud para el vector de los parámetros 
+estimados, $𝑘$ es el valor de penalización dado por el número de parámetros incluidos en el 
+modelo y $𝑛_(𝑝𝑎𝑟𝑎𝑚𝑒𝑡𝑟𝑜𝑠)$ corresponde al número de parámetros comprendidos por el modelo, 
+mayormente conocido como “Schwarz’s Bayesian criterion”. (Freddy Hernández, 2020) 
+
+## Selección de variables
+```{r}
+model= lm(yln~q+x1+x2+x3+f+g+w+w_2+wed+son+son_2+z+z_2+zln)
+summary(model) 
+seleccion_1=stepAIC(model,direction = c("both"))
+summary(seleccion_1)
+```
+se corre el primer modelo para ver cuales variables resultan siginicativas 
+
+
+```{r}
+model_2 =lm(yln ~ q + x1 + x2 + f + g + w + wed + z + z_2)
+summary(model_2)
+```
+
+```{r}
+# Modelo más eficiente
+
+model_2 =lm(yln ~ q + x1 + x2 + f + g + w + wed + z + z_2)
+summary(model_2)
+```
+
+### Modelo excluyendo variables no significativas
+A continuación se eliminan las variables que no resultan relevantes para el modelo, teniendo en cuanta su bondad de ajuste y significancia o ‘P_value’
+
+```{r}
+model_3 =lm(yln ~ q + f + x1 + x2 + g + w + z)
+summary(model_3)
+```
+```{r}
+# Intervalos de confianza 
+confint(model_3)
+```
+
+
+
+En las anteriores tablas se muestra el coeficiente logarítmico de las variables, las cuales explican el fenómeno estudiado en este trabajo, el cual intenta desvelar los factores que inciden en el ingreso de la PEA ocupada del área urbana de Yopal Casanare.  
+Como se puede apreciar, todos los coeficientes presentan significancia indicando que,impactan directamente al ingreso de la población estudiada y a su vez se puede apreciar que no todos los valores de los coeficientes tienen signo positivo, por lo tanto, se puede concluir que no todas las variables incluidas en el estudio aumentan la posibilidad de elevar el nivel de ingreso. 
+De igual forma se puede apreciar, tanto significancia estadística individual como conjunta, apreciando los intervalos de confianza, los cuales presentan rangos normales y de la misma forma todos los estimadores presentan coeficientes congruentes con los intervalos, siendo estos significativos, por lo cual se incluyen todas las variables en el modelo. 
+
+
+# Supuetos del modelo 
+
+A fin de evaluarla fiabilidad del modelo se contrastan los siguientes supuestos  
+
+## Supuesto de Linealidad 
+
+```{r}
+Grafica_x1 <- ggplot(data= data, aes(x = yln, y= x1))+ geom_point()+
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "solid")+ 
+  geom_smooth(method = "loess", se= FALSE, color= "gray20", linetype= "dashed")
+
+Grafica_x2 <- ggplot(data= data, aes(x = yln, y= x2))+ geom_point()+
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "solid")+ 
+  geom_smooth(method = "loess", se= FALSE, color= "gray20", linetype= "dashed")
+Grafica_x3 <- ggplot(data= data, aes(x = yln, y= x3))+ geom_point()+
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "solid")+ 
+  geom_smooth(method = "loess", se= FALSE, color= "gray20", linetype= "dashed")
+Grafica_q <- ggplot(data= data, aes(x = yln, y= q))+ geom_point()+
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "solid")+ 
+  geom_smooth(method = "loess", se= FALSE, color= "gray20", linetype= "dashed")
+Grafica_f <- ggplot(data= data, aes(x = yln, y= f))+ geom_point()+
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "solid")+ 
+  geom_smooth(method = "loess", se= FALSE, color= "gray20", linetype= "dashed")
+Grafica_g <- ggplot(data= data, aes(x = yln, y= g))+ geom_point()+
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "solid")+ 
+  geom_smooth(method = "loess", se= FALSE, color= "gray20", linetype= "dashed")
+########### variables numéricas ############
+Grafica_z <- ggplot(data= data, aes(x = yln, y= z))+ geom_point()+
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "solid")+ 
+  geom_smooth(method = "loess", se= FALSE, color= "gray20", linetype= "dashed")
+Grafica_w <- ggplot(data= data, aes(x = yln, y= w))+ geom_point()+
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "solid")+ 
+  geom_smooth(method = "loess", se= FALSE, color= "gray20", linetype= "dashed")
+################### plot gráficas de normalidad ###################
+ggarrange(Grafica_q, Grafica_z, Grafica_g, Grafica_f, Grafica_x1, Grafica_x2,
+          Grafica_x3, ncol = 3, nrow = 3)
+```
+
+
+Al ser calculado por mínimos cuadrados ordinarios $MCO$ se asume que existe linealidad en 
+los parámetros según (Damodar N & Dawn C, 2010). Se presenta la linealidad cuando la 
+speranza condicional de $𝑌, 𝐸(𝑌/𝑋𝑖)$, es una función lineal en los parámetros.  
+Asumiendo el supuesto anterior, mediante el diagrama de dispersión, podemos observar la 
+linealidad de las variables explicativas o independientes, respecto a la dependiente “logaritmo 
+del ingreso”, cumpliendo el supuesto de linealidad en su conjunto. 
+
+## Normalidad 
+Para la verificación del supuesto de normalidad se hizo uso del gráfico de Normal Q-Q Plot 
+regresión respecto a los residuos del modelo estimado. 
+```{r}
+# distribution of studentized residuals
+
+resid <- studres(model_3)
+```
+
+### Imagen normalidad Q-Q Plot. 
+
+```{r}
+qqnorm(resid)
+qqline(resid)
+```
+Se puede apreciar que los puntos se encuentran junto a la línea de normalidad, no obstante,algunos puntos se encuentran ligeramente alejados de la diagonal, por lo cual no se puede apreciar claramente si el supuesto de normalidad se cumple, a continuación, dispondrá evaluar el supuesto mediante la gráfica de distribución normal Gaussiana.
+```{r}
+ggplot(data,aes(resid))+geom_density()
+```
+
+En el gráfico de normalidad, se puede puede observar una distribución con tendencia 
+leptocúrtica, no obstante, según (Beaver et al., 2006), el teorema de límite central se puede expresar como ∑𝑥𝑖, que, cuando 𝑛 se hace grande, también tiene una distribución aproximadamente normal con media 𝑛 𝜇 y desviación estándar 𝛿√𝑛.  En este sentido, la conclusión se basa en el teorema de límite central y dar por cumplido el supuesto de normalidad en el modelo.   
+
+
+
+## multicolinealidad
+
+$$
+\frac {R^2 (Cov_{x2_x3...xn})^2}     {Var_{x2 *VAr_x3}... Var_{xn}}
+$$
+```{r}
+##inflación de varianza
+
+vif(model_3)
+```
+Como se puede apreciar en la matriz factor de inflación de la varianza, los valores están por debajo de 10, por lo cual, se puede descartar en el modelo la presencia de multicolinealidad. 
+
+### Coeficientes de Correlación entre variables numericas
+
+```{r}
+cor(data[,c("w","z")], use="complete")
+```
+
+## Heteroscedasticidad
+
+Para evaluar este supuesto se plantea el test “studentized Breusch-Pagan” localizado en la librería de R “lmtest” el cual consiste en estimar el modelo inicial, comprobar si el modelo presenta heterocedasticidad, posteriormente calcular los errores del modelo y los determinantes de los errores mediante la incorporación de variables independientes (Roldán et al., 2016).
+
+De manera específica el modelo se presenta de la siguiente manera:
+
+![](Breush-pagam.jpg)
+
+
+
+
+
+```{r}
+bptest(model_3)
+```
+
+Los valores del test estadístico, contradicen el supuesto de homocedasticidad, dado que el P-value es menor a 0.05 rechazando la hipótesis nula $H_0$, demostrando que el modelo presenta problemas de Heteroscedasticidad, por lo que la varianza de los errores aleatorios no es constante. Para cumplir este supuesto se corregirá el modelo mediante errores robustos estandarizados.
+
+
+## Estimación del Modelo Mediante Errores Estándares Robustos
+
+```{r}
+coeftest(model_3, vcov = vcovHC(model_3, type = "HC0"))
+```
+Como se puede apreciar en la tabla anterior, una vez corregido el modelo mediante el método de errores estándar robustos, se explica que ahora la experiencia ya no es significativa al $95%$ dado que su $P-Value$ es mayor a $0.05$, no obstante, sigue siendo significativa al $90$ y se toma por ser congruente con la teoría. Una vez corregido el supuesto de homocedasticidad, se evalúan las variables omitidas.
+
+### Variables Omitidas
+
+```{r}
+resettest(model_3)
+```
+Para la validación del modelo de regresión lineal múltiple se utilizó el test de Ramsey, el cual propone el siguiente supuesto:
+Formula que las variables independientes no están correlacionadas con el término del error.
+
+$cov(x,ε)=(x ε )=0$ 
+
+Donde:
+
+$H_o$ El modelo no presenta problemas de variables omitidas  
+$H_a$ = El modelo presenta problemas de variables omitidas   
+
+
+Dado su $P-value$ no se rechaza la hipótesis nula, cumpliendo el supuesto de variables omitidas, por lo tanto, se puede afirmar estadísticamente que los estimadores de los parámetros  $\hat{\beta_0}$  son insesgados y eficientes. Demostrando que no existen omisiones de variables importantes o problemas de simultaneidad.
+
+
+# Interpretación de resultados 	
+
+Se seleciona el modelo 3, el cual fue estimado Mediante Errores Estándares Robustos
+
+el cual presenta la seguinete ecuación:
+
+### Modelo econométrico
+
+$$ Ln(Y)= \hat{\beta_0}+ \hat{\beta}_1Q+ \hat{\beta}_2F+ \hat{\beta}_3X_1+ \hat{\beta}_4X_2+ \hat{\beta}_5G+ \hat{\beta_6}W+ \hat{\beta_7}Z + \epsilon_t $$
+
+
+### Modelo muestral
+
+$$\hat{YLn}= \hat{\beta_0}+ \hat{\beta}_1Q+ \hat{\beta}_2F+ \hat{\beta}_3X_1+ \hat{\beta}_4X_2+ \hat{\beta}_5G_1+ \hat{\beta_6}W+ \hat{\beta_7}Z $$
+
+```{r}
+coeftest(model_3, vcov = vcovHC(model_3, type = "HC0"))
+```
+La ecuación resultante del modelo calculando con errores robustos presenta los siguientes estimados:
+
+$$\hat{YLn}= 14.106158-0.125724*Q+ 0.2490846*F -0.5176395*X_1 -0.3715330*X_2-  0.1556549*G+0.0091678*W+0.0080724*Z$$
+Interpretación de resultados 
+
+La anterior ecuación econométrica se plantea para determinar las interacciones entre las variables mencionadas en el estudio relacionadas con el ingreso de la PEA. Se aborda utilizando tres variables de tipo dummy, una variable categórica y dos variables continuas. Los resultados fueron los siguientes: 
+
+●	La variable nivel de escolaridad influyó positivamente en los salarios de la PEA ocupada de Yopal Casanare con un nivel estadístico del $95%$ de confianza para el año 2021, considerando que, respecto a u sujeto con educación profesional, un técnico o tecnóloga gana un $37%$ menos y a su vez un individuo sin educación profesional o técnica percibe un 51% menos que un profesional.
+
+●	Se encontró que en promedio el género masculino percibe un 15% más de ingresos respecto al femenino.
+
+●	Contrariamente a lo que a priori se podría esperar, el hecho de tener recomendación a la hora de adquirir un empleo, influye en un $12,5%$ de forma negativa, esto porque, al evaluar a un candidato para un cargo de alto nivel, esta variable es tomada en cuenta en menor medida.
+
+●	La variable escolaridad obtenida fuera del departamento, afecta positivamente al ingreso en un $24%$, esto tal vez explicado por la falta de oferta académica de educación superior, tanto en posgrados como en pregrados.
+
+●	Se encontró que las variables experiencia y edad presentan crecimiento lineal positivo, afectando al ingreso en $0,91%$ y $0,81%$ respectivamente, por cada unidad adicional. 
+
+
+## nálisis y/o Simulación de escenarios
+
+Función de regresión múltiple:
+
+$$\hat{YLn}= \hat{\beta_0}+ \hat{\beta}_1Q+ \hat{\beta}_2F+ \hat{\beta}_3X_1+ \hat{\beta}_4X_2+ \hat{\beta}_5G_1+ \hat{\beta_6}W+ \hat{\beta_7}Z $$
+Donde:
+
+$$\hat{YLn}= 14.106158-0.125724*Q+ 0.2490846*F -0.5176395*X_1 -0.3715330*X_2-  0.1556549*G+0.0091678*W+0.0080724*Z$$
+Así mismo 
+
+$$\hat{YLn}= 14.1061586-0.1257248*Q- 0.5176395*X_1-0.3715330*X_2+0.2490846*F+ 0.1556549*G+ 0.0091678*W+0.0080724*Z $$ 
+$$\hat{YLn} = b$$
+
+$$ e^(\hat{YLn})= e^b $$
+
+$$\hat{Y} = c$$
+
+Teniendo en cuenta la relación anterior, se calculará el ingreso promedio que un individuo puede obtener, dadas ciertas características:
+
+●	El ingreso promedio para un joven de género masculino, de alrededor de 18 años, recientemente graduado de bachiller, sin experiencia laboral y con recomendación laboral:
+```{r}
+m_18 =14.1061586-0.1257248*(1)-0.5176395*1+ 0.1556549*1 + 0.0091678*(17)
+Ingreso_bachiller_m_18 =exp(m_18)
+Ingreso_bachiller_m_18
+
+```
+
+
+●	El ingreso promedio para un individuo de género femenino de alrededor de 17 años, recientemente graduada de bachiller, sin experiencia laboral y con recomendación laboral:
+```{r}
+f_18 =14.1061586-0.1257248*(1)-0.5176395*1+ 0.0091678*(17)
+ingreso_bachiller_f_18 = exp(f_18)
+ingreso_bachiller_f_18
+```
+
+
+●	Se halla el ingreso promedio que podría obtener un individuo que presente las condiciones mayormente favorables en la ciudad de Yopal, este de género masculino, contando con 40 años de edad, profesional y con 10 años de experiencia laboral:
+```{r}
+profesional_m_40 = 14.1061586+ 0.2490846*(1)+ 0.1556549*(1)+ 0.0091678*(40)+ 0.0080724*(10)
+ingreso_profesional_m_40 = exp(profesional_m_40 )
+ingreso_profesional_m_40
+
+```
+
+
+
+●	Se halla el ingreso promedio que podría obtener un individuo que presente las condiciones mayormente favorables en la ciudad de Yopal, en este caso de género femenino, contando con 40 años de edad, profesional y con 10 años de experiencia:
+```{r}
+profesional_f_40 = 14.1061586+ 0.2490846*(1)+ 0.0091678*(40)+ 0.0080724*(10)
+ingreso_profesional_f_40 = exp(profesional_f_40)
+ingreso_profesional_f_40
+```
+
+### Resumen de análisis y/o simulación de escenarios.
+
+
+Género  	Edad	 Educación	 Experiencia	 Recomendacion 	 Ingreso  estimado
+-----------------------------------------------------------------------------
+  M	       18  	Bachiller   	0 años        	Con	        -       $ 959628.8
+-----------------------------------------------------------------------------
+  F	       18  	Bachiller    	0 años          Con	       -        $ 821302.6
+-----------------------------------------------------------------------------
+  M	       40  	Profesional	  10 años	        Sin       -         $ 3135609
+-----------------------------------------------------------------------------
+  F	       40	  Profesional	  10 años       	Sin	      -         $ 26836255
+-----------------------------------------------------------------------------
+
+
+# Conclusiones 
+
+Como resultado del presente estudio se encontró que la variable nivel de escolaridad, influyó positivamente en los salarios de la PEA ocupada de Yopal Casanare con un nivel estadístico del 95% de confianza para el año 2021, considerando que, respecto a u sujeto con educación profesional, un técnico o tecnóloga gana un 37% menos y a su vez un individuo sin educación profesional o técnica percibe un 51% menos que un profesional.
+
+Por otra parte, se concluye que, la edad del empleado junto con los años de experiencia laboral marca resultados positivos en el nivel de ingresos, esta última cuenta con un nivel de significancia del 90% y mediante inferencias se demostró que el ingreso es afectado en un 0,81% y 0,91% por cada año de edad y experiencia obtenido por el trabajador, respectivamente.
+En cuanto a la variable género, se encontró una diferenciación salarial de alrededor del 15% a favor del género masculino, evidenciándose una posible desventaja para el género femenino en cuanto a la remuneración se refiere, es decir, por un millón de pesos que un individuo de género masculino recibe, una mujer recibiría $850.000 aproximadamente.
+
+Adicionalmente se logró determinar que el canal de búsqueda o recomendación presenta un impacto negativo del 12,5% sobre el salario de la PEA ocupada en Yopal, esto con un nivel de significancia estadística del 95%, lo que explica que, por un millón de pesos que reciba cualquier individuo sin recomendación, un individuo diferente con recomendación y las mismas características - ceteris paribus - obtendrá $875.000.
+
+Finalmente, se estimó que la escolaridad obtenida por fuera del departamento, influyó un 24,9% positivamente en los salarios de la PEA, lo que significa, por un millón de pesos que gana un individuo que obtuvo todos sus estudios dentro del departamento, otro individuo con las mismas características, pero que realizó sus estudios por fuera del departamento ganaría $1´250.000.
+
+
+
